@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskMaster · Gamified Todo</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --accent: #3b82f6;
+      --accent-light: #eff6ff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 8px 20px rgba(0,0,0,0.04);
+      --radius: 16px;
+      --transition: all 0.2s ease;
+    }
+
+    body.dark {
+      --bg: #0b1120;
+      --surface: #1e293b;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --accent: #3b82f6;
+      --accent-light: #1e3a8a;
+      --shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      transition: var(--transition);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* Auth screens */
+    .auth-container {
+      max-width: 420px;
+      margin: 80px auto;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .auth-header i {
+      font-size: 40px;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      display: none;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .user-greeting {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rank-chip {
+      background: var(--accent);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .xp-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-weight: 500;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      padding: 6px 12px;
+      border-radius: 40px;
+      border: 1px solid var(--border);
+    }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 6px;
+    }
+
+    /* Stats row */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .progress-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar-bg {
+      background: var(--border);
+      height: 12px;
+      border-radius: 40px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--success);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .reminder-list {
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .reminder-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .badge-deadline {
+      background: var(--warning);
+      color: black;
+      font-size: 0.75rem;
+      padding: 2px 10px;
+      border-radius: 40px;
+      font-weight: 600;
+    }
+
+    .priority-high { color: var(--danger); font-weight: 600; }
+    .priority-medium { color: var(--warning); }
+    .priority-low { color: var(--success); }
+
+    /* Add task form */
+    .task-form-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .form-row input, .form-row select, .form-row textarea {
+      flex: 1 1 180px;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+    }
+
+    .task-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 16px;
+      border-radius: 40px;
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .task-item {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: var(--transition);
+    }
+
+    .task-check {
+      transform: scale(1.3);
+      accent-color: var(--accent);
+    }
+
+    .task-content {
+      flex: 1;
+    }
+
+    .task-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .task-actions i {
+      margin: 0 5px;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    .task-actions i:hover { opacity: 1; color: var(--accent); }
+
+    .completed-task .task-title {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .badge-section {
+      margin-top: 24px;
+    }
+
+    .badge-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .badge i { color: gold; }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="light">
+<div class="app">
+  <!-- AUTH SCREENS (login/signup) -->
+  <div id="authScreen" class="auth-container">
+    <div class="auth-header">
+      <i class="fas fa-tasks"></i>
+      <h2>TaskMaster</h2>
+      <p style="color: var(--text-secondary);">level up your productivity</p>
+    </div>
+    <div class="tab-bar">
+      <div class="tab active" data-tab="login">Login</div>
+      <div class="tab" data-tab="signup">Sign Up</div>
+    </div>
+    <div id="loginForm">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="demo">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••">
+      </div>
+      <button class="btn" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</button>
+      <p class="error-msg" id="loginError"></p>
+      <p style="margin-top: 16px; text-align:center; font-size:0.9rem;">Try: demo / demo</p>
+    </div>
+    <div id="signupForm" style="display: none;">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="signupUsername">
+      </div>
+      <div class="form-group">
+        <label>Email (optional)</label>
+        <input type="email" id="signupEmail">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword">
+      </div>
+      <button class="btn" id="signupBtn"><i class="fas fa-user-plus"></i> Create Account</button>
+      <p class="error-msg" id="signupError"></p>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD (hidden until login) -->
+  <div id="dashboard" class="dashboard">
+    <div class="top-bar">
+      <div class="user-greeting">
+        <h2><i class="fas fa-check-circle" style="color:var(--accent);"></i> <span id="displayUsername"></span></h2>
+        <span class="rank-chip" id="rankDisplay">Beginner</span>
+        <span class="xp-chip" id="xpDisplay">0 XP</span>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <div class="theme-toggle">
+          <i class="fas fa-sun"></i>
+          <label class="switch" style="display:flex;">
+            <input type="checkbox" id="themeSwitch">
+          </label>
+          <i class="fas fa-moon"></i>
+        </div>
+        <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+
+    <!-- Progress & Reminders -->
+    <div class="stats-grid">
+      <div class="card">
+        <div class="progress-title">
+          <span><i class="fas fa-chart-pie"></i> Task Progress</span>
+          <span id="taskStats">0/0</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div style="display:flex; justify-content: space-between; margin-top:8px;">
+          <span><i class="fas fa-check-circle" style="color:var(--success);"></i> Done: <span id="doneCount">0</span></span>
+          <span><i class="fas fa-clock"></i> Left: <span id="leftCount">0</span></span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:8px;"><i class="fas fa-bell"></i> Upcoming deadlines</h3>
+        <ul class="reminder-list" id="reminderList">
+          <li style="color:var(--text-secondary);">No urgent tasks</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Add Task -->
+    <div class="task-form-card">
+      <h3><i class="fas fa-plus-circle"></i> New Task</h3>
+      <div class="form-row">
+        <input type="text" id="taskTitle" placeholder="Task title" style="flex:2;">
+        <select id="taskCategory">
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+          <option value="Study">Study</option>
+          <option value="Health">Health</option>
+        </select>
+        <select id="taskPriority">
+          <option value="High">High</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="Low">Low</option>
+        </select>
+        <input type="date" id="taskDeadline">
+      </div>
+      <div class="form-row">
+        <textarea id="taskDesc" placeholder="Description (optional)" rows="2"></textarea>
+      </div>
+      <button class="btn" id="addTaskBtn" style="margin-top:12px;"><i class="fas fa-save"></i> Add Task</button>
+    </div>
+
+    <!-- Task list -->
+    <div class="card" style="padding:20px;">
+      <div class="task-list-header">
+        <h3><i class="fas fa-list"></i> My Tasks</h3>
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="pending">Pending</button>
+          <button class="filter-btn" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+      </div>
+      <div id="taskContainer"></div>
+    </div>
+
+    <!-- Badges section -->
+    <div class="badge-section card">
+      <h3><i class="fas fa-medal"></i> Badges Earned</h3>
+      <div class="badge-container" id="badgeContainer"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    "use strict";
+
+    // ---------- DATA & STATE ----------
+    let currentUser = null; // { id, username, email?, passwordHash, xp, rank, badges }
+    let tasks = [];
+    const STORAGE_USERS = 'tm_users';
+    const STORAGE_TASKS = 'tm_tasks';
+
+    // Predefined badge rules
+    const BADGE_RULES = [
+      { id: 'first_step', name: 'First Step', desc: 'Complete 1 task', reqTasks: 1, icon: 'fa-flag-checkered' },
+      { id: 'task_starter', name: 'Task Starter', desc: '5 tasks done', reqTasks: 5, icon: 'fa-star' },
+      { id: 'productive', name: 'Productive', desc: '10 tasks', reqTasks: 10, icon: 'fa-rocket' },
+      { id: 'xp_novice', name: 'XP Novice', desc: '100 XP', reqXP: 100, icon: 'fa-bolt' },
+      { id: 'xp_warrior', name: 'XP Warrior', desc: '500 XP', reqXP: 500, icon: 'fa-fire' },
+      { id: 'master', name: 'Task Master', desc: '25 tasks', reqTasks: 25, icon: 'fa-crown' }
+    ];
+
+    // Rank thresholds
+    function getRankFromXP(xp) {
+      if (xp >= 1000) return 'Legend';
+      if (xp >= 500) return 'Warrior';
+      if (xp >= 100) return 'Novice';
+      return 'Beginner';
+    }
+
+    // ---------- LOCAL STORAGE HELPERS ----------
+    function loadUsers() {
+      const data = localStorage.getItem(STORAGE_USERS);
+      return data ? JSON.parse(data) : [];
+    }
+    function saveUsers(users) {
+      localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
+    }
+    function loadTasksForUser(userId) {
+      const all = localStorage.getItem(STORAGE_TASKS);
+      const taskMap = all ? JSON.parse(all) : {};
+      return taskMap[userId] || [];
+    }
+    function saveTasksForUser(userId, userTasks) {
+      const all = localStorage.getItem(STORAGE_TASKS);
+      const taskMap = all ? JSON.parse(all) : {};
+      taskMap[userId] = userTasks;
+      localStorage.setItem(STORAGE_TASKS, JSON.stringify(taskMap));
+    }
+
+    // Initialize demo user if none exist
+    function initDemoUser() {
+      let users = loadUsers();
+      if (users.length === 0) {
+        const demoUser = {
+          id: 'user_' + Date.now(),
+          username: 'demo',
+          email: 'demo@taskmaster.local',
+          passwordHash: btoa('demo'), // simple encoding (not secure, demo only)
+          xp: 20,
+          rank: 'Beginner',
+          badges: []
+        };
+        users.push(demoUser);
+        saveUsers(users);
+        // add sample tasks
+        const sampleTasks = [
+          { id: 't1', title: 'Welcome! Complete your first task', category: 'Personal', priority: 'High', deadline: getTodayString(), status: 'pending', description: '' },
+          { id: 't2', title: 'Try dark mode', category: 'Work', priority: 'Medium', deadline: getTodayString(2), status: 'pending', description: 'Click the moon icon' }
+        ];
+        saveTasksForUser(demoUser.id, sampleTasks);
+      }
+    }
+    function getTodayString(offsetDays = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      return d.toISOString().split('T')[0];
+    }
+
+    // ---------- UI HELPERS ----------
+    function showAuthScreen(show) {
+      document.getElementById('authScreen').style.display = show ? 'block' : 'none';
+      document.getElementById('dashboard').style.display = show ? 'none' : 'block';
+    }
+
+    function updateDashboardUI() {
+      if (!currentUser) return;
+      document.getElementById('displayUsername').textContent = currentUser.username;
+      document.getElementById('rankDisplay').textContent = currentUser.rank;
+      document.getElementById('xpDisplay').textContent = currentUser.xp + ' XP';
+      
+      const stats = computeStats();
+      document.getElementById('doneCount').textContent = stats.done;
+      document.getElementById('leftCount').textContent = stats.left;
+      document.getElementById('taskStats').textContent = `${stats.done}/${stats.total}`;
+      const percent = stats.total ? (stats.done / stats.total)*100 : 0;
+      document.getElementById('progressFill').style.width = percent + '%';
+      
+      renderReminders();
+      renderBadges();
+      renderTasks();
+    }
+
+    function computeStats() {
+      const userTasks = tasks;
+      const done = userTasks.filter(t => t.status === 'completed').length;
+      const left = userTasks.filter(t => t.status === 'pending').length;
+      return { done, left, total: done+left };
+    }
+
+    function renderReminders() {
+      const today = new Date().toISOString().split('T')[0];
+      const nextWeek = new Date(Date.now() + 7*86400000).toISOString().split('T')[0];
+      const pending = tasks.filter(t => t.status === 'pending' && t.deadline >= today && t.deadline <= nextWeek)
+                           .sort((a,b) => a.deadline.localeCompare(b.deadline));
+      const container = document.getElementById('reminderList');
+      if (pending.length === 0) {
+        container.innerHTML = '<li style="color:var(--text-secondary);">No urgent deadlines 🎉</li>';
+        return;
+      }
+      container.innerHTML = pending.slice(0,4).map(t => `
+        <li class="reminder-item">
+          <span class="badge-deadline">${formatDate(t.deadline)}</span>
+          <span>${escapeHtml(t.title)}</span>
+          <span class="priority-${t.priority.toLowerCase()}">${t.priority}</span>
+        </li>
+      `).join('');
+    }
+
+    function formatDate(d) { return new Date(d).toLocaleDateString('en-US', {month:'short', day:'numeric'}); }
+    function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+    // Render tasks with current filter
+    let currentFilter = 'pending';
+    function renderTasks() {
+      const filter = currentFilter;
+      let filtered = tasks;
+      if (filter === 'pending') filtered = tasks.filter(t => t.status === 'pending');
+      else if (filter === 'completed') filtered = tasks.filter(t => t.status === 'completed');
+      
+      // sort by priority: High > Medium > Low, then deadline
+      const priorityOrder = { 'High':1, 'Medium':2, 'Low':3 };
+      filtered.sort((a,b) => {
+        if (a.priority !== b.priority) return priorityOrder[a.priority] - priorityOrder[b.priority];
+        return (a.deadline || '').localeCompare(b.deadline || '');
+      });
+
+      const container = document.getElementById('taskContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `<p style="padding:20px;text-align:center;color:var(--text-secondary);">No tasks</p>`;
+        return;
+      }
+      container.innerHTML = filtered.map(task => `
+        <div class="task-item ${task.status === 'completed' ? 'completed-task' : ''}">
+          <input type="checkbox" class="task-check" ${task.status === 'completed' ? 'checked' : ''} data-id="${task.id}">
+          <div class="task-content">
+            <div class="task-title">
+              ${escapeHtml(task.title)}
+              <span class="priority-${task.priority.toLowerCase()}" style="font-size:0.8rem;">● ${task.priority}</span>
+            </div>
+            <div class="task-meta">
+              <span><i class="far fa-folder"></i> ${task.category}</span>
+              <span><i class="far fa-calendar"></i> ${task.deadline || 'No date'}</span>
+            </div>
+            ${task.description ? `<div style="font-size:0.9rem; color:var(--text-secondary);">${escapeHtml(task.description)}</div>` : ''}
+          </div>
+          <div class="task-actions">
+            <i class="fas fa-edit" data-edit="${task.id}"></i>
+            <i class="fas fa-trash" data-delete="${task.id}"></i>
+          </div>
+        </div>
+      `).join('');
+
+      // attach checkbox events
+      container.querySelectorAll('.task-check').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const id = cb.dataset.id;
+          const task = tasks.find(t => t.id === id);
+          if (task) {
+            const wasCompleted = task.status === 'completed';
+            task.status = e.target.checked ? 'completed' : 'pending';
+            if (!wasCompleted && task.status === 'completed') {
+              // Award XP
+              const xpMap = { High: 30, Medium: 20, Low: 10 };
+              const earned = xpMap[task.priority] || 20;
+              currentUser.xp = (currentUser.xp || 0) + earned;
+              currentUser.rank = getRankFromXP(currentUser.xp);
+              updateUserInStorage();
+              checkAndAwardBadges();
+            }
+            saveTasksForUser(currentUser.id, tasks);
+            updateDashboardUI();
+          }
+        });
+      });
+      // edit / delete
+      container.querySelectorAll('[data-edit]').forEach(el => {
+        el.addEventListener('click', () => editTask(el.dataset.edit));
+      });
+      container.querySelectorAll('[data-delete]').forEach(el => {
+        el.addEventListener('click', () => deleteTask(el.dataset.delete));
+      });
+    }
+
+    function editTask(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      const newTitle = prompt('Edit title', task.title);
+      if (newTitle !== null) task.title = newTitle.trim() || task.title;
+      saveTasksForUser(currentUser.id, tasks);
+      renderTasks();
+    }
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasksForUser(currentUser.id, tasks);
+      updateDashboardUI();
+    }
+
+    function addTask(title, category, priority, deadline, desc) {
+      const newTask = {
+        id: 'task_' + Date.now() + Math.random(),
+        title, category, priority, deadline, description: desc,
+        status: 'pending'
+      };
+      tasks.push(newTask);
+      saveTasksForUser(currentUser.id, tasks);
+      updateDashboardUI();
+    }
+
+    // Badge logic
+    function checkAndAwardBadges() {
+      if (!currentUser) return;
+      const completed = tasks.filter(t => t.status === 'completed').length;
+      const xp = currentUser.xp;
+      let newBadges = [];
+      BADGE_RULES.forEach(rule => {
+        if ((rule.reqTasks && completed >= rule.reqTasks) || (rule.reqXP && xp >= rule.reqXP)) {
+          if (!currentUser.badges.includes(rule.id)) {
+            currentUser.badges.push(rule.id);
+            newBadges.push(rule.name);
+          }
+        }
+      });
+      if (newBadges.length) {
+        updateUserInStorage();
+        alert('🎖️ New badge(s): ' + newBadges.join(', '));
+      }
+    }
+
+    function renderBadges() {
+      const container = document.getElementById('badgeContainer');
+      const earnedIds = currentUser.badges || [];
+      const earnedBadges = BADGE_RULES.filter(b => earnedIds.includes(b.id));
+      if (earnedBadges.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-secondary);">Complete tasks to earn badges!</span>';
+        return;
+      }
+      container.innerHTML = earnedBadges.map(b => `
+        <div class="badge"><i class="fas ${b.icon}"></i> ${b.name} – ${b.desc}</div>
+      `).join('');
+    }
+
+    function updateUserInStorage() {
+      let users = loadUsers();
+      const idx = users.findIndex(u => u.id === currentUser.id);
+      if (idx !== -1) {
+        users[idx] = { ...currentUser };
+        saveUsers(users);
+      }
+    }
+
+    // Auth functions
+    function login(username, password) {
+      const users = loadUsers();
+      const user = users.find(u => u.username === username && u.passwordHash === btoa(password));
+      if (user) {
+        currentUser = { ...user };
+        tasks = loadTasksForUser(currentUser.id);
+        showAuthScreen(false);
+        updateDashboardUI();
+        checkAndAwardBadges(); // in case new tasks
+        return true;
+      }
+      return false;
+    }
+
+    function signup(username, email, password) {
+      const users = loadUsers();
+      if (users.find(u => u.username === username)) return false;
+      const newUser = {
+        id: 'user_' + Date.now(),
+        username, email: email || '',
+        passwordHash: btoa(password),
+        xp: 0,
+        rank: 'Beginner',
+        badges: []
+      };
+      users.push(newUser);
+      saveUsers(users);
+      currentUser = { ...newUser };
+      tasks = [];
+      saveTasksForUser(currentUser.id, []);
+      showAuthScreen(false);
+      updateDashboardUI();
+      return true;
+    }
+
+    function logout() {
+      currentUser = null;
+      tasks = [];
+      showAuthScreen(true);
+    }
+
+    // Theme toggle
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.body.className = savedTheme;
+      const toggle = document.getElementById('themeSwitch');
+      if (toggle) toggle.checked = savedTheme === 'dark';
+    }
+
+    // ---------- EVENT LISTENERS ----------
+    function bindEvents() {
+      // Tabs
+      document.querySelectorAll('.tab').forEach(t => {
+        t.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+          t.classList.add('active');
+          const isLogin = t.dataset.tab === 'login';
+          document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+          document.getElementById('signupForm').style.display = isLogin ? 'none' : 'block';
+        });
+      });
+
+      document.getElementById('loginBtn').addEventListener('click', () => {
+        const u = document.getElementById('loginUsername').value.trim();
+        const p = document.getElementById('loginPassword').value;
+        if (login(u, p)) {
+          document.getElementById('loginError').textContent = '';
+        } else {
+          document.getElementById('loginError').textContent = 'Invalid credentials';
+        }
+      });
+
+      document.getElementById('signupBtn').addEventListener('click', () => {
+        const u = document.getElementById('signupUsername').value.trim();
+        const e = document.getElementById('signupEmail').value.trim();
+        const p = document.getElementById('signupPassword').value;
+        if (!u || !p) {
+          document.getElementById('signupError').textContent = 'Username and password required';
+          return;
+        }
+        if (signup(u, e, p)) {
+          document.getElementById('signupError').textContent = '';
+        } else {
+          document.getElementById('signupError').textContent = 'Username taken';
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+
+      document.getElementById('addTaskBtn').addEventListener('click', () => {
+        const title = document.getElementById('taskTitle').value.trim();
+        if (!title) return alert('Title required');
+        const cat = document.getElementById('taskCategory').value;
+        const prio = document.getElementById('taskPriority').value;
+        const deadline = document.getElementById('taskDeadline').value;
+        const desc = document.getElementById('taskDesc').value;
+        addTask(title, cat, prio, deadline, desc);
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskDesc').value = '';
+      });
+
+      // Filter buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          renderTasks();
+        });
+      });
+
+      // Theme switch
+      const themeSwitch = document.getElementById('themeSwitch');
+      themeSwitch.addEventListener('change', (e) => {
+        const theme = e.target.checked ? 'dark' : 'light';
+        document.body.className = theme;
+        localStorage.setItem('theme', theme);
+      });
+    }
+
+    // Initialize
+    initDemoUser();
+    initTheme();
+    bindEvents();
+    showAuthScreen(true); // start on auth
+    // Auto login if session? not implemented.
+  })();
+</script>
+</body>
+</html>
