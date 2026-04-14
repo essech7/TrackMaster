@@ -28,3 +28,63 @@ Default credentials:
 **Password:** `demo`
 
 ## 📁 Project Structure
+TrackMaster/
+├── index.html # All HTML, CSS, and JavaScript in one self-contained file
+└── README.md # You are here
+
+text
+
+## 🛠️ Setup & Usage
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/essech7/TrackMaster.git
+   cd TrackMaster
+Open the app
+
+Simply double‑click index.html or serve it with any static server.
+
+No build step, no dependencies.
+
+Start using
+
+Create an account or use the demo login.
+
+Add tasks, check them off, and watch your XP grow!
+
+🧠 How It Works
+Data Storage: localStorage keeps users and their tasks separate.
+
+XP & Ranks: Completing a task awards XP based on its priority (High: 30 XP, Medium: 20 XP, Low: 10 XP). Accumulated XP determines your rank.
+
+Badges: Awarded automatically when you reach certain task completion or XP milestones.
+
+Theme: Toggle between light and dark; the choice is saved for your next visit.
+
+🏷️ Author
+Chaouch Esse
+
+LinkedIn: esse-ch-22860b316
+
+GitHub: @essech7
+
+📦 Pushing to GitHub from Command Line
+If you are starting from C:\Git projects\TrackMaster, run these commands:
+
+bash
+cd "C:\Git projects\TrackMaster"
+git init
+git add .
+git commit -m "Initial commit: TrackMaster gamified todo app"
+git branch -M main
+git remote add origin https://github.com/essech7/TrackMaster.git
+git push -u origin main
+Make sure you have created an empty repository named TrackMaster on GitHub first.
+
+📄 License
+This project is open source and available under the MIT License.
+
+⭐ If you like this project, give it a star on GitHub!
+
+
+
